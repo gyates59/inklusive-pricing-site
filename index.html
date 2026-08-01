@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inklusive Print — Pricing Tools</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:#fafafa;color:#1a1a1a;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+  header{background:#1a1a1a;color:#fff;padding:32px;border-bottom:4px solid #e63946}
+  header .wrap{max-width:880px;margin:0 auto}
+  header .tag{font-size:11px;letter-spacing:2px;color:#999;text-transform:uppercase;margin-bottom:6px}
+  header h1{font-size:32px;font-weight:700;letter-spacing:-0.5px}
+  header .sub{font-size:14px;color:#bbb;margin-top:8px}
+  main{flex:1;padding:48px 32px}
+  .wrap{max-width:880px;margin:0 auto}
+  .intro{margin-bottom:32px;color:#555;font-size:15px;line-height:1.7}
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .tool{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:28px;text-decoration:none;color:inherit;transition:all .15s;display:flex;flex-direction:column;gap:8px;min-height:280px}
+  .tool:hover{border-color:#e63946;box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateY(-2px)}
+  .tool .icon{font-size:36px;margin-bottom:12px}
+  .tool h2{font-size:20px;font-weight:700;color:#1a1a1a;letter-spacing:-0.3px}
+  .tool .label{font-size:11px;letter-spacing:2px;color:#999;text-transform:uppercase;margin-bottom:4px;font-weight:600}
+  .tool p{font-size:13px;color:#666;line-height:1.6;flex:1;margin-top:6px}
+  .tool .open{margin-top:14px;font-size:13px;color:#e63946;font-weight:600}
+  .footer{padding:24px 32px;border-top:1px solid #eee;color:#888;font-size:12px;text-align:center}
+  .version-pill{display:inline-block;background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:"SF Mono","Menlo",monospace;letter-spacing:0.5px}
+  @media (max-width:680px){.tools{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="tag">INKLUSIVE PRINT</div>
+    <h1>Pricing Tools</h1>
+    <div class="sub">Internal catalog and quote system &nbsp;·&nbsp; <span class="version-pill">pricing v2026.04.28</span></div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="intro">
+      Two tools that share the same pricing model. Use the <strong>Live Blueprint</strong> to explore the catalog,
+      tune costs and margins, and watch every variant reprice in real time. Use the <strong>Quick Quote</strong> tool
+      to generate a customer-ready quote from a few selections in seconds.
+    </div>
+
+    <div class="tools">
+      <a class='tool' href='/demo'>
+        <div class="icon">⚙️</div>
+        <div class="label">Live Blueprint</div>
+        <h2>Catalog &amp; Pricing Demo</h2>
+        <p>
+          All 12 product categories, 13 products, ~3,500 variants. Edit setup cost, per-unit cost, margin,
+          material multipliers, or material dollar costs directly. Watch the absorption point shift in real time.
+          Switch between Forward and Anchor mode (set a target qty + price → derive setup/per-unit). Download
+          per-category CSVs for review.
+        </p>
+        <div class="open">Open the demo →</div>
+      </a>
+
+      <a class='tool' href='/quote'>
+        <div class="icon">📋</div>
+        <div class="label">Quick Quote</div>
+        <h2>Customer Quote Generator</h2>
+        <p>
+          Pick a category, product, options, and quantity. Returns a live quote with cost breakdown,
+          per-piece price, and customer total. One click to copy as ready-to-send email, or print to PDF.
+          Session history of recent quotes. Uses the same pricing data as the Blueprint — they always match.
+        </p>
+        <div class="open">Open the quote tool →</div>
+      </a>
+    </div>
+  </div>
+</main>
+
+<div class="footer">
+  When pricing is updated, both tools update together. The version stamp at the top tells you which pricing snapshot you&rsquo;re looking at.
+</div>
+</body>
+</html>

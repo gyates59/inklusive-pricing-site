@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inklusive Print — Live Blueprint Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: #fafafa; color: #1a1a1a; line-height: 1.5;
+  }
+  header {
+    background: #1a1a1a; color: #fff; padding: 24px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 4px solid #e63946;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  header .tag { font-size: 11px; letter-spacing: 2px; color: #999; text-transform: uppercase; margin-bottom: 4px; }
+  .stats { display: flex; gap: 24px; }
+  .stat { text-align: right; }
+  .stat .num { font-size: 24px; font-weight: 700; color: #4ade80; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 10px; letter-spacing: 1.5px; color: #999; text-transform: uppercase; }
+  main { display: flex; min-height: calc(100vh - 90px); }
+  .sidebar { width: 240px; background: #fff; border-right: 1px solid #e5e5e5; padding: 16px 0; }
+  .sidebar h3 { font-size: 10px; letter-spacing: 2px; color: #999; text-transform: uppercase; padding: 0 20px 8px; }
+  .cat {
+    padding: 10px 20px; cursor: pointer; border-left: 3px solid transparent;
+    display: flex; justify-content: space-between; align-items: center; font-size: 13px;
+  }
+  .cat:hover { background: #f5f5f5; }
+  .cat.active { background: #fef3f4; border-left-color: #e63946; font-weight: 600; }
+  .cat .count { font-size: 10px; color: #999; font-variant-numeric: tabular-nums; }
+  .cat-tag { font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-left: 6px; letter-spacing: 0.5px; }
+  .cat-tag.tuned { background: #4ade80; color: #064e3b; font-weight: 700; }
+  .content { flex: 1; padding: 32px; overflow-y: auto; max-height: calc(100vh - 90px); }
+  .product { background: #fff; border-radius: 8px; border: 1px solid #e5e5e5; margin-bottom: 24px; overflow: hidden; }
+  .product-header {
+    padding: 18px 24px; background: #fafafa; border-bottom: 1px solid #e5e5e5;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .product-header h3 { font-size: 18px; font-weight: 600; }
+  .product-header .desc { font-size: 13px; color: #666; margin-top: 4px; }
+  .variant-badge {
+    background: #1a1a1a; color: #4ade80; padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .pricing-panel {
+    padding: 18px 24px; background: #fffaf0; border-bottom: 1px solid #fde68a;
+  }
+  .pricing-panel h4 {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: #92400e; margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .pricing-panel .formula {
+    font-family: "SF Mono", "Menlo", monospace; font-size: 11px;
+    color: #b45309; font-weight: normal; letter-spacing: 0;
+  }
+  .pricing-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .absorption-strip {
+    margin-top: 14px; padding: 12px 14px;
+    background: #fff; border: 1px solid #fde68a; border-radius: 6px;
+    display: flex; align-items: center; gap: 16px; font-size: 12px;
+  }
+  .absorption-strip .label {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #92400e; font-weight: 600; flex-shrink: 0;
+  }
+  .absorption-strip .value {
+    font-family: "SF Mono", "Menlo", monospace; font-size: 16px;
+    color: #b45309; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .absorption-strip .explain { color: #78350f; line-height: 1.45; flex: 1; }
+  .absorption-bar {
+    height: 8px; border-radius: 4px; position: relative;
+  }
+  .absorption-bar .marker {
+    position: absolute; top: -3px; width: 2px; height: 14px;
+    background: #92400e; transform: translateX(-50%);
+  }
+  .absorption-bar-labels {
+    display: flex; justify-content: space-between; font-size: 9px;
+    color: #92400e; margin-top: 4px; letter-spacing: 0.5px;
+  }
+  .mode-toggle { display: inline-flex; gap: 0; }
+  .mode-toggle button {
+    background: #fff; border: 1px solid #fde68a; color: #92400e;
+    padding: 4px 12px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; font-weight: 600;
+  }
+  .mode-toggle button:first-child { border-radius: 4px 0 0 4px; }
+  .mode-toggle button:last-child  { border-radius: 0 4px 4px 0; border-left: none; }
+  .mode-toggle button.active { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .derived-strip {
+    margin-top: 10px; padding: 10px 14px; background: #fffbeb;
+    border: 1px dashed #fde68a; border-radius: 6px;
+    font-size: 12px; color: #78350f;
+    display: flex; gap: 24px; align-items: center;
+  }
+  .derived-strip .lbl {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #92400e; margin-right: 6px;
+  }
+  .derived-strip .v {
+    font-family: "SF Mono", "Menlo", monospace; font-size: 14px;
+    color: #b45309; font-weight: 700;
+  }
+  .attr-row .dollar-tag {
+    font-size: 10px; color: #6b7280; font-family: "SF Mono", "Menlo", monospace;
+    margin-left: 6px; font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex-basis: 100%;
+    text-align: right;
+  }
+  .dollar-edit-wrap {
+    flex-basis: 100%;
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 3px; margin-top: 2px;
+  }
+  .dollar-edit-wrap .lbl {
+    font-size: 9px; color: #9ca3af; letter-spacing: 0.5px;
+    text-transform: uppercase; margin-right: 4px;
+  }
+  .dollar-edit-wrap .prefix, .dollar-edit-wrap .suffix {
+    font-size: 10px; color: #6b7280; font-family: "SF Mono", "Menlo", monospace;
+  }
+  .dollar-edit-wrap input.dollar-input {
+    width: 70px; padding: 2px 5px;
+    border: 1px dashed #d1d5db; border-radius: 3px;
+    font-family: "SF Mono", "Menlo", monospace; font-size: 10px;
+    text-align: right; font-variant-numeric: tabular-nums;
+    background: #fafafa; color: #4b5563;
+  }
+  .dollar-edit-wrap input.dollar-input:focus {
+    outline: none; border-color: #f59e0b; border-style: solid;
+    background: #fffbeb; color: #92400e;
+  }
+  .dollar-edit-wrap input.dollar-input.modified {
+    background: #fef3c7; border-color: #f59e0b; color: #92400e;
+  }
+  .pricing-field { background: #fff; border: 1px solid #fde68a; border-radius: 6px; padding: 12px; }
+  .pricing-field label { font-size: 11px; color: #92400e; display: block; margin-bottom: 6px; font-weight: 600; }
+  .pricing-field .input-wrap { display: flex; align-items: center; gap: 4px; }
+  .pricing-field .input-wrap span { color: #b45309; font-weight: 600; font-size: 14px; }
+  .pricing-field input {
+    flex: 1; padding: 6px 10px; border: 1px solid #d4d4d4; border-radius: 4px;
+    font-family: "SF Mono", "Menlo", monospace; font-size: 14px;
+    text-align: right; font-variant-numeric: tabular-nums; background: #fff;
+  }
+  .pricing-field input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+  .pricing-field input.modified { background: #fef3c7; border-color: #f59e0b; }
+  .pricing-field .hint { font-size: 10px; color: #a16207; margin-top: 6px; line-height: 1.3; }
+  .attributes {
+    padding: 24px; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;
+  }
+  .attribute { background: #fafafa; border: 1px solid #ececec; border-radius: 6px; padding: 16px; }
+  .attribute h4 { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #666; margin-bottom: 12px; }
+  .attr-row {
+    display: flex; align-items: center;
+    padding: 8px 0; font-size: 13px; gap: 6px;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .attr-row + .attr-row { border-top: 1px solid #f0f0f0; }
+  .attr-row .name {
+    color: #333;
+    flex: 1 1 auto;
+    min-width: 90px;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+  .attr-row .inputs {
+    display: flex; align-items: center; gap: 4px;
+    flex: 0 0 auto;
+    margin-left: auto;
+    flex-wrap: wrap;
+    row-gap: 4px;
+    justify-content: flex-end;
+  }
+  .attr-row input {
+    width: 52px; padding: 4px 6px; border: 1px solid #d4d4d4; border-radius: 4px;
+    font-family: "SF Mono", "Menlo", monospace; font-size: 12px;
+    text-align: right; font-variant-numeric: tabular-nums; background: #fff;
+  }
+  .attr-row input:focus { outline: none; border-color: #e63946; box-shadow: 0 0 0 3px rgba(230,57,70,0.1); }
+  .attr-row input.modified { background: #fef3c7; border-color: #f59e0b; }
+  .attr-row .unit { font-size: 10px; color: #999; min-width: 22px; }
+  .attr-row .derived { font-size: 11px; color: #999; font-style: italic; }
+  .variants-section { border-top: 1px solid #e5e5e5; padding: 24px; background: #fafafa; }
+  .variants-section h4 {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #666; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filter-row input {
+    padding: 8px 12px; border: 1px solid #d4d4d4; border-radius: 4px;
+    font-size: 13px; flex: 1; min-width: 200px;
+  }
+  .download-btn {
+    background: #1a1a1a; color: #fff; border: none; padding: 8px 16px; border-radius: 4px;
+    font-size: 12px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-weight: 600;
+  }
+  .download-btn:hover { background: #333; }
+  .variants-table { background: #fff; border: 1px solid #ececec; border-radius: 6px; overflow: hidden; max-height: 400px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: #f5f5f5; padding: 10px 12px; text-align: left;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #666;
+    position: sticky; top: 0; border-bottom: 1px solid #e5e5e5;
+  }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid #f5f5f5; }
+  tbody td.price { color: #16a34a; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  tbody td.price.changed { background: #dcfce7; transition: background 0.6s; }
+  tbody td.sku { font-family: "SF Mono", "Menlo", monospace; color: #999; font-size: 11px; }
+  .reset-link { font-size: 11px; color: #e63946; cursor: pointer; margin-left: 8px; text-decoration: underline; }
+  .reset-link:hover { color: #b91c1c; }
+  .demo-tip {
+    background: #1a1a1a; color: #fff; padding: 16px 20px; border-radius: 6px;
+    margin-bottom: 24px; font-size: 13px; display: flex; align-items: center; gap: 12px;
+  }
+  .demo-tip strong { color: #4ade80; }
+  .demo-tip code { background: #2a2a2a; padding: 1px 6px; border-radius: 3px; font-family: "SF Mono", "Menlo", monospace; font-size: 12px; }
+  .legacy-banner {
+    background: #f3f4f6; border: 1px dashed #d1d5db; padding: 12px 16px; border-radius: 6px;
+    font-size: 12px; color: #6b7280; margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="tag">INKLUSIVE PRINT · pricing v2026.04.28</div>
+    <h1>Live Product Blueprint</h1>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="num" id="stat-cats">12</div><div class="lbl">Categories</div></div>
+    <div class="stat"><div class="num" id="stat-products">13</div><div class="lbl">Products</div></div>
+    <div class="stat"><div class="num" id="stat-variants">3,501</div><div class="lbl">Variants</div></div>
+  </div>
+</header>
+
+<main>
+  <aside class="sidebar">
+    <h3>Categories</h3>
+    <div id="cat-list"></div>
+  </aside>
+  <section class="content" id="content"></section>
+</main>
+
+<script>
+// =============================================================
+// BLUEPRINT DATA
+// Business Cards uses the new cost-based pricing model (v2).
+// Other 11 categories still use the simpler multiplier model (v1).
+// =============================================================
+const BLUEPRINTS = {
+  "business-cards": { name: "Business Cards", products: [
+    { name: "Standard Business Card", sku_prefix: "BC-STD",
+      description: "Classic business cards on quality cardstock with custom design.",
+      // Cost-based pricing: anchored at 1000 qty Matte/Standard ≈ $80, 50% gross margin
+      pricing: { base_setup_cost: 15.00, base_per_unit_cost: 0.025, margin_pct: 1.00 },
+      attributes: {
+        Size: [
+          {value:"3.5 x 2 in (Standard)", multiplier:1.00},
+          {value:"2 x 3.5 in (Vertical)", multiplier:1.00}],
+        Paper: [
+          {value:"Matte 14pt", multiplier:1.00},
+          {value:"Glossy 16pt", multiplier:1.30},
+          {value:"Premium Soft Touch", multiplier:2.00},
+          {value:"Recycled Kraft", multiplier:1.50}],
+        Finish: [
+          {value:"Standard", multiplier:1.00, setup_addon:0},
+          {value:"UV Coating", multiplier:1.05, setup_addon:15},
+          {value:"Foil Accent", multiplier:1.10, setup_addon:40},
+          {value:"Rounded Corners", multiplier:1.00, setup_addon:10}],
+        Quantity: [
+          {value:"100"}, {value:"250"}, {value:"500"}, {value:"1000"}, {value:"2500"}]
+      }}]},
+  "postcards-flyers": { name: "Postcards & Flyers", products: [
+    { name: "Standard Postcard", sku_prefix: "PC-STD",
+      description: "Promotional postcards and flyers.",
+      pricing: { base_setup_cost: 15.00, base_per_unit_cost: 0.05, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"4 x 6 in", multiplier:1.00},{value:"5 x 7 in", multiplier:1.30},
+               {value:"6 x 9 in", multiplier:1.65},{value:"8.5 x 11 in", multiplier:2.40}],
+        Paper: [{value:"Matte 14pt", multiplier:1.00},{value:"Glossy 16pt", multiplier:1.20},{value:"Uncoated 100lb", multiplier:0.90}],
+        Sides: [{value:"Single Sided", multiplier:1.00},{value:"Double Sided", multiplier:1.40}],
+        Quantity: [{value:"100"},{value:"250"},{value:"500"},{value:"1000"},{value:"2500"}]
+      }}]},
+  "brochures": { name: "Brochures", products: [
+    { name: "Tri-Fold Brochure", sku_prefix: "BR-TRI",
+      description: "Folded marketing brochures.",
+      pricing: { base_setup_cost: 30.00, base_per_unit_cost: 0.15, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"8.5 x 11 in", multiplier:1.00},{value:"11 x 17 in", multiplier:1.50}],
+        Fold: [{value:"Tri-Fold", multiplier:1.00},{value:"Bi-Fold", multiplier:0.95},{value:"Z-Fold", multiplier:1.05},{value:"Half-Fold", multiplier:0.90}],
+        Paper: [{value:"Matte 100lb", multiplier:1.00},{value:"Glossy 100lb", multiplier:1.10},{value:"Premium 80lb", multiplier:1.30}],
+        Quantity: [{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]
+      }}]},
+  "banners-signs": { name: "Banners & Signs", products: [
+    { name: "Vinyl Banner", sku_prefix: "BN-VNL",
+      description: "Outdoor and indoor vinyl banners.",
+      pricing: { base_setup_cost: 10.00, base_per_unit_cost: 15.00, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"2 x 4 ft", multiplier:1.00},{value:"3 x 6 ft", multiplier:2.00},{value:"4 x 8 ft", multiplier:3.50},{value:"5 x 10 ft", multiplier:5.50}],
+        Material: [{value:"13oz Vinyl", multiplier:1.00},{value:"18oz Heavy Vinyl", multiplier:1.40},{value:"Mesh Vinyl", multiplier:1.30},{value:"Fabric", multiplier:1.70}],
+        Finishing: [{value:"No Grommets", multiplier:1.00, setup_addon:0},{value:"Grommets All Sides", multiplier:1.10, setup_addon:0},{value:"Pole Pocket", multiplier:1.20, setup_addon:0},{value:"Hemmed Edges", multiplier:1.10, setup_addon:0}],
+        Quantity: [{value:"1"},{value:"5"},{value:"10"},{value:"25"}]
+      }}]},
+  "stickers-labels": { name: "Stickers & Labels", products: [
+    { name: "Custom Sticker", sku_prefix: "ST-CUS",
+      description: "Custom-printed stickers and labels.",
+      pricing: { base_setup_cost: 10.00, base_per_unit_cost: 0.10, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"2 x 2 in", multiplier:1.00},{value:"3 x 3 in", multiplier:1.50},{value:"4 x 4 in", multiplier:2.00},{value:"5 x 5 in", multiplier:2.80}],
+        Material: [{value:"Vinyl", multiplier:1.00},{value:"Paper", multiplier:0.80},{value:"Holographic", multiplier:1.60},{value:"Clear Vinyl", multiplier:1.30}],
+        Cut: [{value:"Die Cut", multiplier:1.00, setup_addon:0},{value:"Kiss Cut", multiplier:1.05, setup_addon:0},{value:"Sheet", multiplier:0.90, setup_addon:0}],
+        Quantity: [{value:"50"},{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]
+      }}]},
+  "apparel": { name: "Apparel & Clothing", products: [
+    { name: "Custom Printed T-Shirt", sku_prefix: "AP-TEE",
+      description: "Screen-printed, DTG, or embroidered t-shirts.",
+      // Tighter margin (33% gross) — competitive apparel market
+      pricing: { base_setup_cost: 30.00, base_per_unit_cost: 8.00, margin_pct: 0.50 },
+      attributes: {
+        Garment: [{value:"Crewneck Cotton", multiplier:1.00},{value:"Premium Triblend", multiplier:1.40},{value:"Performance Polyester", multiplier:1.25}],
+        Color: [{value:"White", multiplier:1.00},{value:"Black", multiplier:1.00},{value:"Navy", multiplier:1.00},{value:"Heather Gray", multiplier:1.05},{value:"Red", multiplier:1.05}],
+        Size: [{value:"S", multiplier:1.00},{value:"M", multiplier:1.00},{value:"L", multiplier:1.00},{value:"XL", multiplier:1.00},{value:"2XL", multiplier:1.10},{value:"3XL", multiplier:1.15}],
+        Decoration: [{value:"Screen Print 1 Color", multiplier:1.00, setup_addon:0},{value:"Screen Print Multi", multiplier:1.10, setup_addon:25},{value:"DTG Full Color", multiplier:1.50, setup_addon:0},{value:"Embroidery", multiplier:1.20, setup_addon:30}],
+        Quantity: [{value:"12"},{value:"24"},{value:"48"},{value:"96"},{value:"144"}]
+      }}]},
+  "promotional": { name: "Promotional Products", products: [
+    { name: "Custom Imprinted Pen", sku_prefix: "PR-PEN",
+      description: "Logo-imprinted promotional pens.",
+      pricing: { base_setup_cost: 50.00, base_per_unit_cost: 0.50, margin_pct: 1.00 },
+      attributes: {
+        Style: [{value:"Standard Plastic", multiplier:1.00},{value:"Click Pen", multiplier:1.30},{value:"Metal Pen", multiplier:2.20}],
+        Imprint: [{value:"1 Color", multiplier:1.00, setup_addon:0},{value:"2 Colors", multiplier:1.10, setup_addon:25},{value:"Full Color", multiplier:1.30, setup_addon:50}],
+        Quantity: [{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]
+      }}]},
+  "folders-notepads": { name: "Folders & Notepads", products: [
+    { name: "Presentation Folder", sku_prefix: "FD-PRS",
+      description: "Custom-printed presentation folders.",
+      pricing: { base_setup_cost: 40.00, base_per_unit_cost: 1.20, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"9 x 12 in", multiplier:1.00},{value:"9 x 14.5 in", multiplier:1.20}],
+        Paper: [{value:"100lb Gloss", multiplier:1.00},{value:"120lb Premium", multiplier:1.40}],
+        Pockets: [{value:"Single Pocket", multiplier:1.00},{value:"Two Pockets", multiplier:1.30}],
+        Quantity: [{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]
+      }},
+    { name: "Custom Notepad", sku_prefix: "NP-STD",
+      description: "Branded notepads for office or marketing.",
+      pricing: { base_setup_cost: 20.00, base_per_unit_cost: 0.50, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"5.5 x 8.5 in", multiplier:1.00},{value:"8.5 x 11 in", multiplier:1.50}],
+        Sheets: [{value:"25 sheets", multiplier:1.00},{value:"50 sheets", multiplier:1.60},{value:"100 sheets", multiplier:2.30}],
+        Quantity: [{value:"25"},{value:"50"},{value:"100"},{value:"250"}]
+      }}]},
+  "mugs-drinkware": { name: "Mugs & Drinkware", products: [
+    { name: "Custom Ceramic Mug", sku_prefix: "MG-CER",
+      description: "Sublimation-printed ceramic mugs.",
+      pricing: { base_setup_cost: 25.00, base_per_unit_cost: 3.50, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"11 oz", multiplier:1.00},{value:"15 oz", multiplier:1.20}],
+        Color: [{value:"White", multiplier:1.00},{value:"Black", multiplier:1.20},{value:"Color Inside Red", multiplier:1.25},{value:"Color Inside Blue", multiplier:1.25}],
+        Imprint: [{value:"Single Side", multiplier:1.00},{value:"Wraparound", multiplier:1.40}],
+        Quantity: [{value:"12"},{value:"36"},{value:"72"},{value:"144"}]
+      }}]},
+  "invitations-announcements": { name: "Invitations & Announcements", products: [
+    { name: "Custom Invitation", sku_prefix: "IN-CUS",
+      description: "Wedding, party, and event invitations.",
+      pricing: { base_setup_cost: 30.00, base_per_unit_cost: 0.80, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"5 x 7 in", multiplier:1.00},{value:"4 x 6 in", multiplier:0.80},{value:"5.5 x 8.5 in", multiplier:1.30}],
+        Paper: [{value:"Matte 130lb", multiplier:1.00},{value:"Pearlescent", multiplier:1.40},{value:"Linen Textured", multiplier:1.30},{value:"Premium Cotton", multiplier:1.60}],
+        Finish: [{value:"Standard", multiplier:1.00, setup_addon:0},{value:"Foil Stamping", multiplier:1.20, setup_addon:50},{value:"Embossed", multiplier:1.15, setup_addon:40}],
+        Envelopes: [{value:"No Envelopes", multiplier:1.00},{value:"Plain Envelopes", multiplier:1.20},{value:"Lined Envelopes", multiplier:1.40}],
+        Quantity: [{value:"25"},{value:"50"},{value:"100"},{value:"250"}]
+      }}]},
+  "posters-canvas": { name: "Posters & Canvas", products: [
+    { name: "Custom Poster", sku_prefix: "PS-CUS",
+      description: "Photo and graphic posters.",
+      pricing: { base_setup_cost: 5.00, base_per_unit_cost: 5.00, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"11 x 17 in", multiplier:1.00},{value:"18 x 24 in", multiplier:2.00},{value:"24 x 36 in", multiplier:3.80}],
+        Material: [{value:"Satin Photo", multiplier:1.00},{value:"Matte Heavy", multiplier:1.15},{value:"Canvas", multiplier:2.00}],
+        Finishing: [{value:"Rolled", multiplier:1.00, setup_addon:0},{value:"Mounted on Foam", multiplier:1.50, setup_addon:10},{value:"Framed", multiplier:2.50, setup_addon:25}],
+        Quantity: [{value:"1"},{value:"5"},{value:"10"}]
+      }}]},
+  "magnets": { name: "Magnets", products: [
+    { name: "Custom Magnet", sku_prefix: "MG-CUS",
+      description: "Promotional and decorative magnets.",
+      pricing: { base_setup_cost: 10.00, base_per_unit_cost: 0.10, margin_pct: 1.00 },
+      attributes: {
+        Size: [{value:"2 x 3.5 in (Business Card)", multiplier:1.00},{value:"3 x 4 in", multiplier:1.50},{value:"4 x 6 in", multiplier:2.00},{value:"5 x 7 in", multiplier:2.60}],
+        Shape: [{value:"Rectangle", multiplier:1.00},{value:"Square", multiplier:1.00},{value:"Round", multiplier:1.10},{value:"Custom Cut", multiplier:1.40}],
+        Thickness: [{value:"Standard 20mil", multiplier:1.00},{value:"Premium 30mil", multiplier:1.30}],
+        Quantity: [{value:"50"},{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]
+      }}]},
+};
+
+const ORIGINALS = JSON.parse(JSON.stringify(BLUEPRINTS));
+
+// Per-product UI mode: 'forward' (edit setup/per-unit) or 'inverse' (edit anchor qty/price/absorption)
+const MODES = {};
+
+// Derive setup + per_unit from anchor qty, anchor price, absorption qty, margin
+function deriveFromAnchor(anchorQty, anchorPrice, absorptionQty, margin) {
+  const cost = anchorPrice / (1 + margin);
+  const denom = (absorptionQty + anchorQty) || 1;
+  const perUnit = cost / denom;
+  const setup = absorptionQty * perUnit;
+  return {
+    base_setup_cost: Math.round(setup * 100) / 100,
+    base_per_unit_cost: Math.round(perUnit * 10000) / 10000
+  };
+}
+
+// =============================================================
+// PRICING + EXPANSION
+// =============================================================
+function extractQty(value) {
+  const m = String(value).match(/\d+/);
+  return m ? parseInt(m[0]) : 1;
+}
+function computePriceV1(values) {
+  let base = 0, mult = 1;
+  for (const v of values) {
+    if (v.base_price !== undefined) base += +v.base_price;
+    if (v.per_unit_price !== undefined) base += +v.per_unit_price * extractQty(v.value);
+    if (v.multiplier !== undefined) mult *= +v.multiplier;
+  }
+  return Math.round(base * mult * 100) / 100;
+}
+function computePriceV2(product, attrNames, combo) {
+  const p = product.pricing;
+  const baseSetup = +p.base_setup_cost || 0;
+  const basePerUnit = +p.base_per_unit_cost || 0;
+  const margin = +p.margin_pct || 0;
+  let qty = 1, mult = 1, setupAddon = 0;
+  for (let i = 0; i < attrNames.length; i++) {
+    const v = combo[i];
+    if (attrNames[i].toLowerCase() === "quantity") {
+      if (v.price_override !== undefined) return Math.round(+v.price_override * 100) / 100;
+      qty = extractQty(v.value);
+    }
+    if (v.multiplier !== undefined) mult *= +v.multiplier;
+    if (v.setup_addon !== undefined) setupAddon += +v.setup_addon;
+  }
+  const perUnit = basePerUnit * mult;
+  const setup = baseSetup + setupAddon;
+  const cost = setup + (perUnit * qty);
+  return Math.round(cost * (1 + margin) * 100) / 100;
+}
+function computePrice(product, attrNames, combo) {
+  if (product && product.pricing) return computePriceV2(product, attrNames, combo);
+  return computePriceV1(combo);
+}
+function slug(s) { return String(s).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) || "X"; }
+function cartesian(arr) {
+  return arr.reduce((acc, curr) => acc.flatMap(a => curr.map(c => [...a, c])), [[]]);
+}
+function expandProduct(product) {
+  const names = Object.keys(product.attributes);
+  const lists = names.map(n => product.attributes[n]);
+  return cartesian(lists).map(combo => ({
+    sku: [product.sku_prefix, ...combo.map(v => slug(v.value))].join("-"),
+    attrs: Object.fromEntries(names.map((n, i) => [n, combo[i].value])),
+    price: computePrice(product, names, combo),
+  }));
+}
+function totalVariants() {
+  let n = 0;
+  for (const slug in BLUEPRINTS) for (const p of BLUEPRINTS[slug].products) n += expandProduct(p).length;
+  return n;
+}
+function categoryVariantCount(slug) {
+  let n = 0;
+  for (const p of BLUEPRINTS[slug].products) n += expandProduct(p).length;
+  return n;
+}
+
+// =============================================================
+// RENDER
+// =============================================================
+let activeCategory = "business-cards";
+
+function renderPricingPanel(catSlug, pidx) {
+  const product = BLUEPRINTS[catSlug].products[pidx];
+  if (!product.pricing) return '';
+  const orig = ORIGINALS[catSlug].products[pidx].pricing;
+  const modeKey = `${catSlug}/${pidx}`;
+  const mode = MODES[modeKey] || 'forward';
+
+  const setupVal = +product.pricing.base_setup_cost || 0;
+  const perUnitVal = +product.pricing.base_per_unit_cost || 0;
+  const marginVal = +product.pricing.margin_pct || 0;
+  const absorptionQty = perUnitVal > 0 ? Math.round(setupVal / perUnitVal) : 0;
+
+  const qtyAttr = product.attributes.Quantity || product.attributes.quantity || [];
+  const qtys = qtyAttr.map(q => extractQty(q.value)).filter(n => n > 0);
+  const maxQty = qtys.length ? Math.max(...qtys) : 1000;
+  const minQ = qtys.length ? Math.min(...qtys) : 1, maxQ = maxQty;
+  const anchorPrice = Math.round((setupVal + perUnitVal * maxQty) * (1 + marginVal) * 100) / 100;
+
+  const setupMod = setupVal !== orig.base_setup_cost ? "modified" : "";
+  const perUnitMod = perUnitVal !== orig.base_per_unit_cost ? "modified" : "";
+  const marginMod = marginVal !== orig.margin_pct ? "modified" : "";
+
+  const fullyAbsorbed = absorptionQty * 4;
+  const pos = Math.max(0, Math.min(100, Math.round(100 * (Math.log(absorptionQty || 1) - Math.log(minQ || 1)) / (Math.log(maxQ || 1) - Math.log(minQ || 1) || 1))));
+
+  const forwardFields = `
+    <div class="pricing-fields">
+      <div class="pricing-field">
+        <label>Base Setup Cost</label>
+        <div class="input-wrap">
+          <span>$</span>
+          <input type="number" step="0.01" data-cat="${catSlug}" data-pidx="${pidx}" data-pricing-field="base_setup_cost" value="${setupVal}" class="${setupMod}">
+        </div>
+        <div class="hint">Plates, prepress, dies. Paid once per order.</div>
+      </div>
+      <div class="pricing-field">
+        <label>Per-Unit Cost (baseline)</label>
+        <div class="input-wrap">
+          <span>$</span>
+          <input type="number" step="0.001" data-cat="${catSlug}" data-pidx="${pidx}" data-pricing-field="base_per_unit_cost" value="${perUnitVal}" class="${perUnitMod}">
+        </div>
+        <div class="hint">Paper + ink + labor at cheapest material/finish.</div>
+      </div>
+      <div class="pricing-field">
+        <label>Margin (markup × cost)</label>
+        <div class="input-wrap">
+          <input type="number" step="0.05" data-cat="${catSlug}" data-pidx="${pidx}" data-pricing-field="margin_pct" value="${marginVal}" class="${marginMod}">
+          <span>×</span>
+        </div>
+        <div class="hint">1.00 = 50% gross · 0.50 = 33% · 0.67 = 40%</div>
+      </div>
+    </div>
+  `;
+
+  const inverseFields = `
+    <div class="pricing-fields" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="pricing-field">
+        <label>Anchor Quantity</label>
+        <div class="input-wrap">
+          <input type="number" step="1" data-inverse-cat="${catSlug}" data-inverse-pidx="${pidx}" data-inverse-field="anchor_qty" value="${maxQty}">
+          <span>qty</span>
+        </div>
+        <div class="hint">The qty where you pin a target retail price.</div>
+      </div>
+      <div class="pricing-field">
+        <label>Target Retail Price</label>
+        <div class="input-wrap">
+          <span>$</span>
+          <input type="number" step="0.01" data-inverse-cat="${catSlug}" data-inverse-pidx="${pidx}" data-inverse-field="anchor_price" value="${anchorPrice.toFixed(2)}">
+        </div>
+        <div class="hint">What customers pay at that anchor qty (baseline config).</div>
+      </div>
+      <div class="pricing-field">
+        <label>Absorption Quantity</label>
+        <div class="input-wrap">
+          <input type="number" step="1" data-inverse-cat="${catSlug}" data-inverse-pidx="${pidx}" data-inverse-field="absorption_qty" value="${absorptionQty}">
+          <span>qty</span>
+        </div>
+        <div class="hint">Where setup-per-piece equals per-unit cost.</div>
+      </div>
+      <div class="pricing-field">
+        <label>Margin (markup × cost)</label>
+        <div class="input-wrap">
+          <input type="number" step="0.05" data-inverse-cat="${catSlug}" data-inverse-pidx="${pidx}" data-inverse-field="margin_pct" value="${marginVal}">
+          <span>×</span>
+        </div>
+        <div class="hint">1.00 = 50% gross · 0.50 = 33%</div>
+      </div>
+    </div>
+    <div class="derived-strip">
+      <span><span class="lbl">Derived setup</span><span class="v">$${setupVal.toFixed(2)}</span></span>
+      <span><span class="lbl">Derived per-unit</span><span class="v">$${perUnitVal.toFixed(4)}</span></span>
+      <span style="font-size:11px;color:#a16207;font-style:italic;flex:1;text-align:right">Edit any anchor field — setup and per-unit recalculate.</span>
+    </div>
+  `;
+
+  return `
+    <h4>
+      <span>Product Pricing
+        <span class="mode-toggle" style="margin-left:12px">
+          <button class="${mode==='forward'?'active':''}" onclick="setMode('${catSlug}', ${pidx}, 'forward')">Forward</button>
+          <button class="${mode==='inverse'?'active':''}" onclick="setMode('${catSlug}', ${pidx}, 'inverse')">Anchor</button>
+        </span>
+      </span>
+      <span class="formula">price = (setup + per_unit × qty) × (1 + margin)</span>
+    </h4>
+    ${mode === 'forward' ? forwardFields : inverseFields}
+    <div class="absorption-strip" id="absorption-${pidx}">
+      <div>
+        <div class="label">Setup absorbs at qty ≈</div>
+        <div class="value">${absorptionQty.toLocaleString()}</div>
+      </div>
+      <div class="explain">
+        Below <b>${absorptionQty.toLocaleString()}</b>, customers pay disproportionately for setup.
+        Around <b>${absorptionQty.toLocaleString()}</b>, setup-per-piece equals per-unit cost.
+        Above <b>${fullyAbsorbed.toLocaleString()}</b>, setup is mostly invisible — prices flatten toward materials.
+      </div>
+      <div style="flex:0 0 220px">
+        <div class="absorption-bar" style="background: linear-gradient(to right, #fed7aa 0%, #fed7aa ${pos}%, #d1fae5 ${pos}%, #d1fae5 100%);">
+          <div class="marker" style="left: ${pos}%"></div>
+        </div>
+        <div class="absorption-bar-labels"><span>qty ${minQ.toLocaleString()}</span><span>setup-heavy ← | → material-heavy</span><span>qty ${maxQ.toLocaleString()}</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function setMode(catSlug, pidx, mode) {
+  MODES[`${catSlug}/${pidx}`] = mode;
+  const panel = document.querySelector(`[data-product-pricing-panel="${catSlug}/${pidx}"]`);
+  if (panel) {
+    panel.innerHTML = renderPricingPanel(catSlug, pidx);
+    wireUpPricingInputs(panel, catSlug, pidx);
+  }
+}
+
+function wireUpPricingInputs(panel, catSlug, pidx) {
+  panel.querySelectorAll("input[data-pricing-field]").forEach(input => {
+    input.addEventListener("input", e => {
+      const field = e.target.dataset.pricingField;
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val)) {
+        BLUEPRINTS[catSlug].products[pidx].pricing[field] = val;
+        rerenderProduct(catSlug, pidx);
+      }
+    });
+  });
+  panel.querySelectorAll("input[data-inverse-field]").forEach(input => {
+    input.addEventListener("input", e => {
+      const product = BLUEPRINTS[catSlug].products[pidx];
+      const inputs = panel.querySelectorAll("input[data-inverse-field]");
+      const vals = {};
+      inputs.forEach(inp => { vals[inp.dataset.inverseField] = parseFloat(inp.value); });
+      if ([vals.anchor_qty, vals.anchor_price, vals.absorption_qty, vals.margin_pct].some(v => isNaN(v) || v < 0)) return;
+      const derived = deriveFromAnchor(vals.anchor_qty, vals.anchor_price, vals.absorption_qty, vals.margin_pct);
+      product.pricing.base_setup_cost = derived.base_setup_cost;
+      product.pricing.base_per_unit_cost = derived.base_per_unit_cost;
+      product.pricing.margin_pct = vals.margin_pct;
+      // Update derived strip in place without full re-render to preserve focus
+      const derivedStrip = panel.querySelector(".derived-strip");
+      if (derivedStrip) {
+        const vs = derivedStrip.querySelectorAll(".v");
+        if (vs[0]) vs[0].textContent = `$${derived.base_setup_cost.toFixed(2)}`;
+        if (vs[1]) vs[1].textContent = `$${derived.base_per_unit_cost.toFixed(4)}`;
+      }
+      rerenderProduct(catSlug, pidx, /*skipPanel*/true);
+    });
+  });
+}
+
+function renderSidebar() {
+  const list = document.getElementById("cat-list");
+  list.innerHTML = "";
+  for (const slug in BLUEPRINTS) {
+    const cat = BLUEPRINTS[slug];
+    const isTuned = cat.products.some(p => p.pricing);
+    const div = document.createElement("div");
+    div.className = "cat" + (slug === activeCategory ? " active" : "");
+    div.innerHTML = `<span>${cat.name}${isTuned ? '<span class="cat-tag tuned">TUNED</span>' : ''}</span><span class="count">${categoryVariantCount(slug).toLocaleString()}</span>`;
+    div.onclick = () => { activeCategory = slug; renderAll(); };
+    list.appendChild(div);
+  }
+}
+
+function renderHeader() {
+  document.getElementById("stat-variants").textContent = totalVariants().toLocaleString();
+}
+
+function renderContent() {
+  const cat = BLUEPRINTS[activeCategory];
+  const c = document.getElementById("content");
+  c.innerHTML = "";
+
+  if (activeCategory === "business-cards" && !window.__demoSeen) {
+    const intro = document.createElement("div");
+    intro.className = "demo-tip";
+    intro.innerHTML = `<span>👋</span><span><strong>Try it:</strong> Change "Base Setup Cost" from <code>15.00</code> to <code>25.00</code> in the yellow Pricing panel below. Watch <em>every variant</em> reprice — but the discount curve stays correct because setup absorbs at scale.</span>`;
+    c.appendChild(intro);
+  }
+
+  for (let pi = 0; pi < cat.products.length; pi++) {
+    const product = cat.products[pi];
+    const variants = expandProduct(product);
+
+    const productDiv = document.createElement("div");
+    productDiv.className = "product";
+
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "product-header";
+    headerDiv.innerHTML = `
+      <div>
+        <h3>${product.name}</h3>
+        <div class="desc">${product.description}</div>
+      </div>
+      <div class="variant-badge">${variants.length.toLocaleString()} variants</div>
+    `;
+    productDiv.appendChild(headerDiv);
+
+    // ---- Pricing panel for v2 products (with mode toggle) ----
+    if (product.pricing) {
+      const pricingDiv = document.createElement("div");
+      pricingDiv.className = "pricing-panel";
+      pricingDiv.setAttribute("data-product-pricing-panel", `${activeCategory}/${pi}`);
+      pricingDiv.innerHTML = renderPricingPanel(activeCategory, pi);
+      productDiv.appendChild(pricingDiv);
+    } else {
+      const banner = document.createElement("div");
+      banner.style.padding = "12px 24px";
+      banner.style.background = "#f3f4f6";
+      banner.style.borderBottom = "1px solid #e5e7eb";
+      banner.style.fontSize = "11px";
+      banner.style.color = "#6b7280";
+      banner.style.fontStyle = "italic";
+      banner.innerHTML = `Using legacy multiplier model — quantity tiers carry literal prices. (Tune to cost-based when ready.)`;
+      productDiv.appendChild(banner);
+    }
+
+    // ---- Attribute editors ----
+    const attrsDiv = document.createElement("div");
+    attrsDiv.className = "attributes";
+    const attrNames = Object.keys(product.attributes);
+    for (const aname of attrNames) {
+      const ag = document.createElement("div");
+      ag.className = "attribute";
+      const isQty = aname.toLowerCase() === "quantity";
+      const isFinish = aname.toLowerCase() === "finish" && product.pricing;
+      let subhead = "MULTIPLIER";
+      if (isQty) subhead = product.pricing ? "QTY" : "DOLLARS";
+      if (isFinish) subhead = "MULT × · SETUP $+";
+      ag.innerHTML = `<h4>${aname}<span style="float:right;font-weight:normal;color:#aaa">${subhead}</span></h4>`;
+
+      product.attributes[aname].forEach((opt, idx) => {
+        const row = document.createElement("div");
+        row.className = "attr-row";
+        const orig = ORIGINALS[activeCategory].products[pi].attributes[aname][idx];
+
+        let inputHtml = "";
+        const dataAttrs = `data-cat="${activeCategory}" data-pidx="${pi}" data-attr="${aname}" data-idx="${idx}"`;
+
+        if (opt.base_price !== undefined) {
+          const m = opt.base_price !== orig.base_price ? "modified" : "";
+          inputHtml = `<input type="number" step="0.01" ${dataAttrs} data-field="base_price" value="${opt.base_price}" class="${m}"><span class="unit">$</span>`;
+        } else if (opt.per_unit_price !== undefined) {
+          const m = opt.per_unit_price !== orig.per_unit_price ? "modified" : "";
+          inputHtml = `<input type="number" step="0.01" ${dataAttrs} data-field="per_unit_price" value="${opt.per_unit_price}" class="${m}"><span class="unit">$/ea</span>`;
+        } else if (opt.multiplier !== undefined && opt.setup_addon !== undefined) {
+          const mMod = opt.multiplier !== orig.multiplier ? "modified" : "";
+          const sMod = opt.setup_addon !== orig.setup_addon ? "modified" : "";
+          const dollarBlock = product.pricing
+            ? `<div class="dollar-edit-wrap"><span class="lbl">per-piece $</span><span class="prefix">$</span><input type="number" step="0.0001" min="0" ${dataAttrs} data-field="dollar_cost" value="${(product.pricing.base_per_unit_cost * opt.multiplier).toFixed(4)}" class="dollar-input ${mMod}" title="Per-piece material cost (edits the multiplier)"><span class="suffix">/unit</span></div>`
+            : "";
+          inputHtml =
+            `<input type="number" step="0.01" ${dataAttrs} data-field="multiplier" value="${opt.multiplier}" class="${mMod}" title="Per-unit cost multiplier"><span class="unit">×</span>` +
+            `<input type="number" step="1" ${dataAttrs} data-field="setup_addon" value="${opt.setup_addon}" class="${sMod}" title="Extra setup cost (plate/die)" style="margin-left:6px"><span class="unit">$+</span>` +
+            dollarBlock;
+        } else if (opt.multiplier !== undefined) {
+          const m = opt.multiplier !== orig.multiplier ? "modified" : "";
+          const dollarBlock = product.pricing
+            ? `<div class="dollar-edit-wrap"><span class="lbl">per-piece $</span><span class="prefix">$</span><input type="number" step="0.0001" min="0" ${dataAttrs} data-field="dollar_cost" value="${(product.pricing.base_per_unit_cost * opt.multiplier).toFixed(4)}" class="dollar-input ${m}" title="Per-piece material cost (edits the multiplier)"><span class="suffix">/unit</span></div>`
+            : "";
+          inputHtml = `<input type="number" step="0.01" ${dataAttrs} data-field="multiplier" value="${opt.multiplier}" class="${m}"><span class="unit">×</span>${dollarBlock}`;
+        } else {
+          inputHtml = `<span class="derived">derived from formula</span>`;
+        }
+
+        row.innerHTML = `<span class="name">${opt.value}</span><span class="inputs">${inputHtml}</span>`;
+        ag.appendChild(row);
+      });
+      attrsDiv.appendChild(ag);
+    }
+    productDiv.appendChild(attrsDiv);
+
+    // ---- Variants section ----
+    const variantsSection = document.createElement("div");
+    variantsSection.className = "variants-section";
+    variantsSection.innerHTML = `
+      <h4>
+        <span>Generated Variants <span class="reset-link" onclick="resetCategory()">↺ reset to defaults</span></span>
+        <button class="download-btn" onclick="downloadCSV('${activeCategory}', ${pi})">↓ Download CSV</button>
+      </h4>
+      <div class="filter-row">
+        <input type="text" placeholder="Filter variants (e.g., 'Glossy Foil 1000')..." oninput="filterVariants(this.value, ${pi})" id="variant-filter-${pi}">
+      </div>
+      <div class="variants-table" id="variants-table-wrap-${pi}"></div>
+    `;
+    productDiv.appendChild(variantsSection);
+
+    c.appendChild(productDiv);
+    renderVariantsTable(variants, attrNames, "", false, pi);
+  }
+
+  // Wire up event listeners — pricing panels (both forward and inverse modes) get
+  // their handlers via wireUpPricingInputs per panel, attribute inputs at top level.
+  c.querySelectorAll("[data-product-pricing-panel]").forEach(panel => {
+    const [cat, pidx] = panel.dataset.productPricingPanel.split('/');
+    wireUpPricingInputs(panel, cat, +pidx);
+  });
+  c.querySelectorAll("input[data-field]").forEach(input => {
+    input.addEventListener("input", e => {
+      const cat = e.target.dataset.cat;
+      const pidx = +e.target.dataset.pidx;
+      const aname = e.target.dataset.attr;
+      const idx = +e.target.dataset.idx;
+      const field = e.target.dataset.field;
+      const val = parseFloat(e.target.value);
+      if (isNaN(val)) return;
+      const product = BLUEPRINTS[cat].products[pidx];
+      const opt = product.attributes[aname][idx];
+      const origOpt = ORIGINALS[cat].products[pidx].attributes[aname][idx];
+
+      if (field === "dollar_cost") {
+        // Edited the per-piece dollar value directly — back-compute the multiplier.
+        const base = +(product.pricing && product.pricing.base_per_unit_cost) || 0;
+        const newMult = base > 0 ? Math.round((val / base) * 10000) / 10000 : 1;
+        opt.multiplier = newMult;
+        const row = e.target.closest(".attr-row");
+        const multInput = row && row.querySelector('input[data-field="multiplier"]');
+        if (multInput) {
+          multInput.value = newMult;
+          if (newMult !== origOpt.multiplier) multInput.classList.add("modified");
+          else multInput.classList.remove("modified");
+        }
+        const baselineDollar = base * (origOpt.multiplier || 1);
+        if (Math.abs(val - baselineDollar) > 1e-6) e.target.classList.add("modified");
+        else e.target.classList.remove("modified");
+      } else {
+        opt[field] = val;
+        if (val !== origOpt[field]) e.target.classList.add("modified");
+        else e.target.classList.remove("modified");
+      }
+      rerenderProduct(cat, pidx);
+    });
+  });
+
+  window.__demoSeen = true;
+}
+
+function rerenderProduct(catSlug, pidx, skipPanel) {
+  const product = BLUEPRINTS[catSlug].products[pidx];
+  const variants = expandProduct(product);
+  const filterVal = document.getElementById(`variant-filter-${pidx}`)?.value || "";
+  renderVariantsTable(variants, Object.keys(product.attributes), filterVal, true, pidx);
+  renderHeader();
+  document.querySelectorAll("#cat-list .cat").forEach((el, i) => {
+    const slug = Object.keys(BLUEPRINTS)[i];
+    el.querySelector(".count").textContent = categoryVariantCount(slug).toLocaleString();
+  });
+  const badges = document.querySelectorAll(".variant-badge");
+  if (badges[pidx]) badges[pidx].textContent = variants.length.toLocaleString() + " variants";
+
+  // Refresh absorption strip + dollar inputs so they reflect the current state
+  if (product.pricing) {
+    const setup = +product.pricing.base_setup_cost || 0;
+    const perUnit = +product.pricing.base_per_unit_cost || 0;
+    if (perUnit > 0) {
+      const crossover = Math.round(setup / perUnit);
+      const fullyAbsorbed = crossover * 4;
+      const qtyAttr = product.attributes.Quantity || product.attributes.quantity || [];
+      const qtys = qtyAttr.map(q => extractQty(q.value)).filter(n => n > 0);
+      const minQ = qtys.length ? Math.min(...qtys) : 1, maxQ = qtys.length ? Math.max(...qtys) : 1;
+      const pos = Math.max(0, Math.min(100, Math.round(100 * (Math.log(crossover || 1) - Math.log(minQ || 1)) / (Math.log(maxQ || 1) - Math.log(minQ || 1) || 1))));
+      const strip = document.getElementById(`absorption-${pidx}`);
+      if (strip) {
+        strip.querySelector(".value").textContent = crossover.toLocaleString();
+        strip.querySelector(".explain").innerHTML =
+          `Below <b>${crossover.toLocaleString()}</b>, customers pay disproportionately for setup. ` +
+          `Around <b>${crossover.toLocaleString()}</b>, setup-per-piece equals per-unit cost. ` +
+          `Above <b>${fullyAbsorbed.toLocaleString()}</b>, setup is mostly invisible — prices flatten toward materials.`;
+        const bar = strip.querySelector(".absorption-bar");
+        bar.style.background = `linear-gradient(to right, #fed7aa 0%, #fed7aa ${pos}%, #d1fae5 ${pos}%, #d1fae5 100%)`;
+        bar.querySelector(".marker").style.left = pos + "%";
+      }
+    }
+    // Refresh dollar-cost inputs (skip the one currently being edited)
+    document.querySelectorAll(`.attr-row .dollar-input`).forEach(dollarInput => {
+      if (dollarInput.dataset.cat !== catSlug || +dollarInput.dataset.pidx !== pidx) return;
+      if (document.activeElement === dollarInput) return;
+      const row = dollarInput.closest('.attr-row');
+      const multInput = row && row.querySelector('input[data-field="multiplier"]');
+      const mult = multInput ? (parseFloat(multInput.value) || 1) : 1;
+      dollarInput.value = (perUnit * mult).toFixed(4);
+    });
+  }
+}
+
+function renderVariantsTable(variants, attrNames, filter, animate, pidx) {
+  const wrap = document.getElementById(`variants-table-wrap-${pidx}`);
+  if (!wrap) return;
+  const filtered = filter
+    ? variants.filter(v => v.sku.toLowerCase().includes(filter.toLowerCase()) ||
+        Object.values(v.attrs).join(" ").toLowerCase().includes(filter.toLowerCase()))
+    : variants;
+  const limit = 200;
+  const shown = filtered.slice(0, limit);
+  let html = `<table>
+    <thead><tr>
+      <th>SKU</th>
+      ${attrNames.map(n => `<th>${n}</th>`).join("")}
+      <th style="text-align:right">Price</th>
+    </tr></thead><tbody>`;
+  for (const v of shown) {
+    html += `<tr>
+      <td class="sku">${v.sku}</td>
+      ${attrNames.map(n => `<td>${v.attrs[n]}</td>`).join("")}
+      <td class="price ${animate ? "changed" : ""}">$${v.price.toFixed(2)}</td>
+    </tr>`;
+  }
+  html += `</tbody></table>`;
+  if (filtered.length > limit) {
+    html += `<div style="padding:12px;text-align:center;color:#999;font-size:11px;background:#fafafa">
+      Showing ${limit} of ${filtered.length.toLocaleString()} matching variants. Use filter to narrow.
+    </div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function filterVariants(value, pidx) {
+  const cat = BLUEPRINTS[activeCategory];
+  const product = cat.products[pidx];
+  const variants = expandProduct(product);
+  renderVariantsTable(variants, Object.keys(product.attributes), value, false, pidx);
+}
+
+function resetCategory() {
+  BLUEPRINTS[activeCategory] = JSON.parse(JSON.stringify(ORIGINALS[activeCategory]));
+  renderAll();
+}
+
+function downloadCSV(catSlug, pidx) {
+  const cat = BLUEPRINTS[catSlug];
+  const product = cat.products[pidx];
+  const variants = expandProduct(product);
+  const attrNames = Object.keys(product.attributes);
+  const headers = ["SKU", "Product", ...attrNames, "Price"];
+  let csv = headers.map(h => `"${h}"`).join(",") + "\n";
+  for (const v of variants) {
+    const row = [v.sku, product.name, ...attrNames.map(n => v.attrs[n]), v.price.toFixed(2)];
+    csv += row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",") + "\n";
+  }
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${catSlug}_variants.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderAll() {
+  renderSidebar();
+  renderContent();
+  renderHeader();
+}
+
+renderAll();
+</script>
+
+</body>
+</html>

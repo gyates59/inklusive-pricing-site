@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inklusive Print — Quick Quote</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:#f5f5f5;color:#1a1a1a;line-height:1.5;padding:20px}
+  .layout{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:480px 1fr;gap:24px}
+  header{grid-column:1/-1;background:#1a1a1a;color:#fff;padding:24px 32px;border-bottom:4px solid #e63946;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center}
+  header h1{font-size:22px;font-weight:700;letter-spacing:-0.3px}
+  header .tag{font-size:11px;letter-spacing:2px;color:#999;text-transform:uppercase;margin-bottom:4px}
+  header .dt{font-size:11px;color:#bbb;letter-spacing:1px}
+  .card{background:#fff;border-radius:8px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .card h2{font-size:11px;letter-spacing:2px;color:#666;text-transform:uppercase;margin-bottom:14px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11px;color:#666;margin-bottom:4px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600}
+  .field input,.field select{width:100%;padding:8px 12px;border:1px solid #d4d4d4;border-radius:4px;font-size:14px;background:#fff}
+  .field input:focus,.field select:focus{outline:none;border-color:#e63946;box-shadow:0 0 0 3px rgba(230,57,70,.1)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .quote-card{background:#fff;border-radius:8px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,.06);position:sticky;top:20px}
+  .quote-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #eee}
+  .quote-id{font-family:"SF Mono","Menlo",monospace;font-size:11px;color:#999;letter-spacing:1px}
+  .quote-product{font-size:24px;font-weight:700;color:#1a1a1a;letter-spacing:-0.3px;margin-bottom:6px}
+  .quote-config{font-size:13px;color:#666;line-height:1.6}
+  .quote-price-block{margin:24px 0;padding:24px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;text-align:center}
+  .quote-total{font-size:48px;font-weight:700;color:#16a34a;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  .quote-per-piece{font-size:13px;color:#666;margin-top:6px;font-variant-numeric:tabular-nums}
+  .breakdown{margin:20px 0}
+  .breakdown h3{font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase;margin-bottom:10px}
+  .breakdown table{width:100%;font-size:13px;border-collapse:collapse}
+  .breakdown td{padding:6px 0;color:#444}
+  .breakdown td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-family:"SF Mono","Menlo",monospace;font-size:12px}
+  .breakdown tr.subtotal td{border-top:1px solid #eee;padding-top:10px;font-weight:600;color:#222}
+  .breakdown tr.total td{border-top:2px solid #1a1a1a;padding-top:10px;font-weight:700;color:#1a1a1a;font-size:14px}
+  .actions{display:flex;gap:8px;margin-top:24px;padding-top:20px;border-top:1px solid #eee}
+  .btn{flex:1;padding:10px 14px;border:none;border-radius:4px;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-weight:600;transition:opacity .15s}
+  .btn:hover{opacity:.85}
+  .btn-primary{background:#1a1a1a;color:#fff}
+  .btn-secondary{background:#f3f4f6;color:#1a1a1a;border:1px solid #d1d5db}
+  .btn-success{background:#16a34a;color:#fff}
+  .copy-feedback{position:fixed;top:20px;right:20px;background:#16a34a;color:#fff;padding:12px 20px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+  .copy-feedback.show{opacity:1}
+  .history{margin-top:16px;background:#fff;border-radius:8px;padding:20px}
+  .history h2{font-size:11px;letter-spacing:2px;color:#666;text-transform:uppercase;margin-bottom:12px}
+  .history-item{padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;justify-content:space-between;cursor:pointer}
+  .history-item:hover{background:#fafafa}
+  .history-item:last-child{border-bottom:none}
+  .history-empty{font-size:11px;color:#aaa;font-style:italic;padding:8px 0}
+  @media print{
+    body{background:#fff;padding:0}
+    header,.card,.history,.actions{display:none}
+    .layout{grid-template-columns:1fr;max-width:none}
+    .quote-card{box-shadow:none;border:1px solid #000;page-break-inside:avoid;position:static}
+  }
+</style>
+</head>
+<body>
+<div class="copy-feedback" id="feedback">Copied to clipboard ✓</div>
+<div class="layout">
+  <header>
+    <div>
+      <div class="tag">INKLUSIVE PRINT · pricing v2026.04.28</div>
+      <h1>Quick Quote Generator</h1>
+    </div>
+    <div class="dt"><span id="quote-date"></span> · <span id="quote-id"></span></div>
+  </header>
+
+  <div>
+    <div class="card">
+      <h2>Customer</h2>
+      <div class="row2">
+        <div class="field"><label>Customer Name</label><input id="cust-name" placeholder="Acme Corp"></div>
+        <div class="field"><label>Customer Email</label><input id="cust-email" placeholder="contact@acme.com"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>Product</h2>
+      <div class="field"><label>Category</label><select id="sel-cat"></select></div>
+      <div class="field"><label>Product</label><select id="sel-prod"></select></div>
+      <div id="attr-fields"></div>
+    </div>
+
+    <div class="history" id="history-card">
+      <h2>Recent Quotes (this session)</h2>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="quote-card" id="quote-output"></div>
+  </div>
+</div>
+
+<script>
+// =============================================================
+// DATA
+// =============================================================
+const BLUEPRINTS = {
+  "business-cards":{name:"Business Cards",products:[{name:"Standard Business Card",sku_prefix:"BC-STD",description:"Classic business cards on quality cardstock.",pricing:{base_setup_cost:15,base_per_unit_cost:0.025,margin_pct:1.0},attributes:{Size:[{value:"3.5 x 2 in (Standard)",multiplier:1},{value:"2 x 3.5 in (Vertical)",multiplier:1}],Paper:[{value:"Matte 14pt",multiplier:1},{value:"Glossy 16pt",multiplier:1.3},{value:"Premium Soft Touch",multiplier:2},{value:"Recycled Kraft",multiplier:1.5}],Finish:[{value:"Standard",multiplier:1,setup_addon:0},{value:"UV Coating",multiplier:1.05,setup_addon:15},{value:"Foil Accent",multiplier:1.1,setup_addon:40},{value:"Rounded Corners",multiplier:1,setup_addon:10}],Quantity:[{value:"100"},{value:"250"},{value:"500"},{value:"1000"},{value:"2500"}]}}]},
+  "postcards-flyers":{name:"Postcards & Flyers",products:[{name:"Standard Postcard",sku_prefix:"PC-STD",description:"Promotional postcards and flyers.",pricing:{base_setup_cost:15,base_per_unit_cost:0.05,margin_pct:1.0},attributes:{Size:[{value:"4 x 6 in",multiplier:1},{value:"5 x 7 in",multiplier:1.3},{value:"6 x 9 in",multiplier:1.65},{value:"8.5 x 11 in",multiplier:2.4}],Paper:[{value:"Matte 14pt",multiplier:1},{value:"Glossy 16pt",multiplier:1.2},{value:"Uncoated 100lb",multiplier:0.9}],Sides:[{value:"Single Sided",multiplier:1},{value:"Double Sided",multiplier:1.4}],Quantity:[{value:"100"},{value:"250"},{value:"500"},{value:"1000"},{value:"2500"}]}}]},
+  "brochures":{name:"Brochures",products:[{name:"Tri-Fold Brochure",sku_prefix:"BR-TRI",description:"Folded marketing brochures.",pricing:{base_setup_cost:30,base_per_unit_cost:0.15,margin_pct:1.0},attributes:{Size:[{value:"8.5 x 11 in",multiplier:1},{value:"11 x 17 in",multiplier:1.5}],Fold:[{value:"Tri-Fold",multiplier:1},{value:"Bi-Fold",multiplier:0.95},{value:"Z-Fold",multiplier:1.05},{value:"Half-Fold",multiplier:0.9}],Paper:[{value:"Matte 100lb",multiplier:1},{value:"Glossy 100lb",multiplier:1.1},{value:"Premium 80lb",multiplier:1.3}],Quantity:[{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]}}]},
+  "banners-signs":{name:"Banners & Signs",products:[{name:"Vinyl Banner",sku_prefix:"BN-VNL",description:"Outdoor and indoor vinyl banners.",pricing:{base_setup_cost:10,base_per_unit_cost:15,margin_pct:1.0},attributes:{Size:[{value:"2 x 4 ft",multiplier:1},{value:"3 x 6 ft",multiplier:2},{value:"4 x 8 ft",multiplier:3.5},{value:"5 x 10 ft",multiplier:5.5}],Material:[{value:"13oz Vinyl",multiplier:1},{value:"18oz Heavy Vinyl",multiplier:1.4},{value:"Mesh Vinyl",multiplier:1.3},{value:"Fabric",multiplier:1.7}],Finishing:[{value:"No Grommets",multiplier:1,setup_addon:0},{value:"Grommets All Sides",multiplier:1.1,setup_addon:0},{value:"Pole Pocket",multiplier:1.2,setup_addon:0},{value:"Hemmed Edges",multiplier:1.1,setup_addon:0}],Quantity:[{value:"1"},{value:"5"},{value:"10"},{value:"25"}]}}]},
+  "stickers-labels":{name:"Stickers & Labels",products:[{name:"Custom Sticker",sku_prefix:"ST-CUS",description:"Custom-printed stickers and labels.",pricing:{base_setup_cost:10,base_per_unit_cost:0.1,margin_pct:1.0},attributes:{Size:[{value:"2 x 2 in",multiplier:1},{value:"3 x 3 in",multiplier:1.5},{value:"4 x 4 in",multiplier:2},{value:"5 x 5 in",multiplier:2.8}],Material:[{value:"Vinyl",multiplier:1},{value:"Paper",multiplier:0.8},{value:"Holographic",multiplier:1.6},{value:"Clear Vinyl",multiplier:1.3}],Cut:[{value:"Die Cut",multiplier:1,setup_addon:0},{value:"Kiss Cut",multiplier:1.05,setup_addon:0},{value:"Sheet",multiplier:0.9,setup_addon:0}],Quantity:[{value:"50"},{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]}}]},
+  "apparel":{name:"Apparel & Clothing",products:[{name:"Custom Printed T-Shirt",sku_prefix:"AP-TEE",description:"Screen-printed, DTG, or embroidered t-shirts.",pricing:{base_setup_cost:30,base_per_unit_cost:8,margin_pct:0.5},attributes:{Garment:[{value:"Crewneck Cotton",multiplier:1},{value:"Premium Triblend",multiplier:1.4},{value:"Performance Polyester",multiplier:1.25}],Color:[{value:"White",multiplier:1},{value:"Black",multiplier:1},{value:"Navy",multiplier:1},{value:"Heather Gray",multiplier:1.05},{value:"Red",multiplier:1.05}],Size:[{value:"S",multiplier:1},{value:"M",multiplier:1},{value:"L",multiplier:1},{value:"XL",multiplier:1},{value:"2XL",multiplier:1.1},{value:"3XL",multiplier:1.15}],Decoration:[{value:"Screen Print 1 Color",multiplier:1,setup_addon:0},{value:"Screen Print Multi",multiplier:1.1,setup_addon:25},{value:"DTG Full Color",multiplier:1.5,setup_addon:0},{value:"Embroidery",multiplier:1.2,setup_addon:30}],Quantity:[{value:"12"},{value:"24"},{value:"48"},{value:"96"},{value:"144"}]}}]},
+  "promotional":{name:"Promotional Products",products:[{name:"Custom Imprinted Pen",sku_prefix:"PR-PEN",description:"Logo-imprinted promotional pens.",pricing:{base_setup_cost:50,base_per_unit_cost:0.5,margin_pct:1.0},attributes:{Style:[{value:"Standard Plastic",multiplier:1},{value:"Click Pen",multiplier:1.3},{value:"Metal Pen",multiplier:2.2}],Imprint:[{value:"1 Color",multiplier:1,setup_addon:0},{value:"2 Colors",multiplier:1.1,setup_addon:25},{value:"Full Color",multiplier:1.3,setup_addon:50}],Quantity:[{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]}}]},
+  "folders-notepads":{name:"Folders & Notepads",products:[{name:"Presentation Folder",sku_prefix:"FD-PRS",description:"Custom-printed presentation folders.",pricing:{base_setup_cost:40,base_per_unit_cost:1.2,margin_pct:1.0},attributes:{Size:[{value:"9 x 12 in",multiplier:1},{value:"9 x 14.5 in",multiplier:1.2}],Paper:[{value:"100lb Gloss",multiplier:1},{value:"120lb Premium",multiplier:1.4}],Pockets:[{value:"Single Pocket",multiplier:1},{value:"Two Pockets",multiplier:1.3}],Quantity:[{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]}},{name:"Custom Notepad",sku_prefix:"NP-STD",description:"Branded notepads.",pricing:{base_setup_cost:20,base_per_unit_cost:0.5,margin_pct:1.0},attributes:{Size:[{value:"5.5 x 8.5 in",multiplier:1},{value:"8.5 x 11 in",multiplier:1.5}],Sheets:[{value:"25 sheets",multiplier:1},{value:"50 sheets",multiplier:1.6},{value:"100 sheets",multiplier:2.3}],Quantity:[{value:"25"},{value:"50"},{value:"100"},{value:"250"}]}}]},
+  "mugs-drinkware":{name:"Mugs & Drinkware",products:[{name:"Custom Ceramic Mug",sku_prefix:"MG-CER",description:"Sublimation-printed ceramic mugs.",pricing:{base_setup_cost:25,base_per_unit_cost:3.5,margin_pct:1.0},attributes:{Size:[{value:"11 oz",multiplier:1},{value:"15 oz",multiplier:1.2}],Color:[{value:"White",multiplier:1},{value:"Black",multiplier:1.2},{value:"Color Inside Red",multiplier:1.25},{value:"Color Inside Blue",multiplier:1.25}],Imprint:[{value:"Single Side",multiplier:1},{value:"Wraparound",multiplier:1.4}],Quantity:[{value:"12"},{value:"36"},{value:"72"},{value:"144"}]}}]},
+  "invitations-announcements":{name:"Invitations & Announcements",products:[{name:"Custom Invitation",sku_prefix:"IN-CUS",description:"Wedding, party, and event invitations.",pricing:{base_setup_cost:30,base_per_unit_cost:0.8,margin_pct:1.0},attributes:{Size:[{value:"5 x 7 in",multiplier:1},{value:"4 x 6 in",multiplier:0.8},{value:"5.5 x 8.5 in",multiplier:1.3}],Paper:[{value:"Matte 130lb",multiplier:1},{value:"Pearlescent",multiplier:1.4},{value:"Linen Textured",multiplier:1.3},{value:"Premium Cotton",multiplier:1.6}],Finish:[{value:"Standard",multiplier:1,setup_addon:0},{value:"Foil Stamping",multiplier:1.2,setup_addon:50},{value:"Embossed",multiplier:1.15,setup_addon:40}],Envelopes:[{value:"No Envelopes",multiplier:1},{value:"Plain Envelopes",multiplier:1.2},{value:"Lined Envelopes",multiplier:1.4}],Quantity:[{value:"25"},{value:"50"},{value:"100"},{value:"250"}]}}]},
+  "posters-canvas":{name:"Posters & Canvas",products:[{name:"Custom Poster",sku_prefix:"PS-CUS",description:"Photo and graphic posters.",pricing:{base_setup_cost:5,base_per_unit_cost:5,margin_pct:1.0},attributes:{Size:[{value:"11 x 17 in",multiplier:1},{value:"18 x 24 in",multiplier:2},{value:"24 x 36 in",multiplier:3.8}],Material:[{value:"Satin Photo",multiplier:1},{value:"Matte Heavy",multiplier:1.15},{value:"Canvas",multiplier:2}],Finishing:[{value:"Rolled",multiplier:1,setup_addon:0},{value:"Mounted on Foam",multiplier:1.5,setup_addon:10},{value:"Framed",multiplier:2.5,setup_addon:25}],Quantity:[{value:"1"},{value:"5"},{value:"10"}]}}]},
+  "magnets":{name:"Magnets",products:[{name:"Custom Magnet",sku_prefix:"MG-CUS",description:"Promotional and decorative magnets.",pricing:{base_setup_cost:10,base_per_unit_cost:0.1,margin_pct:1.0},attributes:{Size:[{value:"2 x 3.5 in (Business Card)",multiplier:1},{value:"3 x 4 in",multiplier:1.5},{value:"4 x 6 in",multiplier:2},{value:"5 x 7 in",multiplier:2.6}],Shape:[{value:"Rectangle",multiplier:1},{value:"Square",multiplier:1},{value:"Round",multiplier:1.1},{value:"Custom Cut",multiplier:1.4}],Thickness:[{value:"Standard 20mil",multiplier:1},{value:"Premium 30mil",multiplier:1.3}],Quantity:[{value:"50"},{value:"100"},{value:"250"},{value:"500"},{value:"1000"}]}}]}
+};
+
+// =============================================================
+// PRICING
+// =============================================================
+function extractQty(v){const m=String(v).match(/\d+/);return m?parseInt(m[0]):1}
+
+function quote(catSlug,productIdx,selections,qty){
+  const product=BLUEPRINTS[catSlug].products[productIdx];
+  const p=product.pricing;
+  let mult=1, addonSetup=0;
+  const breakdown=[];
+  for(const [name,opt] of Object.entries(selections)){
+    if(opt.multiplier!==undefined) mult*=opt.multiplier;
+    if(opt.setup_addon){
+      addonSetup+=opt.setup_addon;
+      breakdown.push({label:`Setup add-on: ${name} (${opt.value})`,value:opt.setup_addon});
+    }
+  }
+  const perUnit=p.base_per_unit_cost*mult;
+  const baseSetup=p.base_setup_cost;
+  const totalSetup=baseSetup+addonSetup;
+  const materialCost=perUnit*qty;
+  const cost=totalSetup+materialCost;
+  const price=cost*(1+p.margin_pct);
+  const perPiece=price/qty;
+  return {
+    product, selections, qty,
+    breakdown:[
+      {label:'Base setup',value:baseSetup},
+      ...breakdown,
+      {label:`Materials (${qty} × $${perUnit.toFixed(4)})`,value:materialCost,subtotal:true},
+      {label:'Total cost',value:cost,bold:true},
+      {label:`Margin (${(p.margin_pct*100).toFixed(0)}% markup)`,value:price-cost},
+    ],
+    cost, price, perPiece, perUnit, totalSetup
+  };
+}
+
+// =============================================================
+// UI
+// =============================================================
+let history=[];
+let lastQuote=null;
+
+function $(id){return document.getElementById(id)}
+function fmt(n){return n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function init(){
+  const today=new Date();
+  $('quote-date').textContent=today.toISOString().slice(0,10);
+  $('quote-id').textContent='Q-'+today.toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.floor(Math.random()*900+100);
+
+  const catSel=$('sel-cat');
+  catSel.innerHTML=Object.entries(BLUEPRINTS).map(([slug,c])=>`<option value="${slug}">${c.name}</option>`).join('');
+  catSel.addEventListener('change',renderProductSelect);
+  $('sel-prod').addEventListener('change',renderAttrFields);
+  renderProductSelect();
+}
+
+function renderProductSelect(){
+  const slug=$('sel-cat').value;
+  const cat=BLUEPRINTS[slug];
+  $('sel-prod').innerHTML=cat.products.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('');
+  renderAttrFields();
+}
+
+function renderAttrFields(){
+  const slug=$('sel-cat').value;
+  const idx=+$('sel-prod').value;
+  const product=BLUEPRINTS[slug].products[idx];
+  const cont=$('attr-fields');
+  let html='';
+  for(const [name,opts] of Object.entries(product.attributes)){
+    if(name.toLowerCase()==='quantity'){
+      html+=`<div class="row2">
+        <div class="field"><label>${name}</label><select id="attr-${name}">${opts.map((o,i)=>`<option value="${i}">${o.value}</option>`).join('')}</select></div>
+        <div class="field"><label>Custom Qty (overrides above)</label><input type="number" id="custom-qty" placeholder="optional"></div>
+      </div>`;
+    } else {
+      html+=`<div class="field"><label>${name}</label><select id="attr-${name}">${opts.map((o,i)=>`<option value="${i}">${o.value}</option>`).join('')}</select></div>`;
+    }
+  }
+  cont.innerHTML=html;
+  cont.querySelectorAll('select,input').forEach(el=>el.addEventListener('input',recompute));
+  recompute();
+}
+
+function recompute(){
+  const slug=$('sel-cat').value;
+  const idx=+$('sel-prod').value;
+  const product=BLUEPRINTS[slug].products[idx];
+  const selections={};
+  let qty=1;
+  for(const [name,opts] of Object.entries(product.attributes)){
+    const sel=$(`attr-${name}`);
+    if(!sel) continue;
+    const opt=opts[+sel.value];
+    selections[name]=opt;
+    if(name.toLowerCase()==='quantity') qty=extractQty(opt.value);
+  }
+  const customQty=parseInt($('custom-qty')?.value);
+  if(!isNaN(customQty)&&customQty>0) qty=customQty;
+  lastQuote=quote(slug,idx,selections,qty);
+  renderQuote();
+}
+
+function renderQuote(){
+  if(!lastQuote){return}
+  const q=lastQuote;
+  const configLines=Object.entries(q.selections).filter(([n])=>n.toLowerCase()!=='quantity').map(([n,o])=>`${n}: ${o.value}`).join(' · ');
+  $('quote-output').innerHTML=`
+    <div class="quote-header">
+      <div>
+        <div class="quote-id">${$('quote-id').textContent}</div>
+        <div class="quote-product">${q.product.name}</div>
+        <div class="quote-config">${configLines}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="quote-id">${$('quote-date').textContent}</div>
+      </div>
+    </div>
+    <div class="quote-price-block">
+      <div class="quote-total">$${fmt(q.price)}</div>
+      <div class="quote-per-piece">${q.qty.toLocaleString()} pcs · $${q.perPiece.toFixed(3)} per piece</div>
+    </div>
+    <div class="breakdown">
+      <h3>Cost Breakdown (internal)</h3>
+      <table>
+        ${q.breakdown.map(r=>`<tr class="${r.subtotal?'subtotal':''}${r.bold?' total':''}"><td>${r.label}</td><td>$${fmt(r.value)}</td></tr>`).join('')}
+        <tr class="total"><td>Customer total</td><td>$${fmt(q.price)}</td></tr>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="copyEmail()">📋 Copy as Email</button>
+      <button class="btn btn-secondary" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-success" onclick="saveQuote()">💾 Save</button>
+    </div>
+  `;
+}
+
+function copyEmail(){
+  const q=lastQuote;
+  const cust=$('cust-name').value||'[Customer]';
+  const config=Object.entries(q.selections).map(([n,o])=>`  • ${n}: ${o.value}`).join('\n');
+  const text=`Hi ${cust},
+
+Thank you for your interest in our printing services. Here is your quote:
+
+Product: ${q.product.name}
+${config}
+
+Total: $${fmt(q.price)}
+Quantity: ${q.qty} pieces
+Per piece: $${q.perPiece.toFixed(3)}
+
+This quote is valid for 30 days.
+Quote ID: ${$('quote-id').textContent}
+
+Please reply if you'd like to proceed or have any questions.
+
+Best regards,
+Inklusive Print`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const fb=$('feedback'); fb.classList.add('show'); setTimeout(()=>fb.classList.remove('show'),1500);
+  });
+}
+
+function saveQuote(){
+  const q=lastQuote;
+  history.unshift({
+    id:$('quote-id').textContent,
+    date:$('quote-date').textContent,
+    customer:$('cust-name').value||'(no customer)',
+    product:q.product.name,
+    qty:q.qty,
+    price:q.price,
+    selections:Object.fromEntries(Object.entries(q.selections).map(([n,o])=>[n,o.value])),
+    catSlug:$('sel-cat').value,
+    productIdx:+$('sel-prod').value,
+  });
+  if(history.length>20) history.pop();
+  renderHistory();
+  // Generate fresh ID for next quote
+  const today=new Date();
+  $('quote-id').textContent='Q-'+today.toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.floor(Math.random()*900+100);
+  renderQuote();
+  // Also offer download
+  const blob=new Blob([JSON.stringify(history[0],null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${history[0].id}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function renderHistory(){
+  const list=$('history-list');
+  if(history.length===0){list.innerHTML='<div class="history-empty">No quotes saved yet.</div>';return}
+  list.innerHTML=history.map(h=>`<div class="history-item">
+    <span><strong>${h.product}</strong> · ${h.qty} pcs · ${h.customer}</span>
+    <span style="font-variant-numeric:tabular-nums;color:#16a34a;font-weight:600">$${fmt(h.price)}</span>
+  </div>`).join('');
+}
+
+renderHistory();
+init();
+</script>
+</body>
+</html>
